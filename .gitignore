@@ -1,0 +1,29 @@
+# Build artifacts
+/build/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/.ninja_deps
+**/.ninja_log
+**/build.ninja
+**/compile_commands.json
+
+# STM32 / generated outputs
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+*.o
+*.obj
+*.d
+*.su
+
+# IDE / editor local settings
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# OS files
+.DS_Store
+Thumbs.db
