@@ -3,24 +3,13 @@
  * @brief   부팅 로그 형식이 규약에 맞게 출력되는지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 시험 결과서와 host tool에서 동일한 태그 체계를 사용할 수 있게 하기 위한 TC이다.
  ****************************************************************************/
 
 #include "tc_021_boot_log_format.h"
 #include "log.h"
 #include "platform_port.h"
 
-
-/**
- * @brief   TC-021의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_021_BootLogFormat_Run(void)
 {
     static uint8_t printed = 0;

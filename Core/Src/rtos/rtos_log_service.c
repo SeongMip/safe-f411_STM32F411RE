@@ -1,11 +1,10 @@
 /****************************************************************************
  * @file    rtos_log_service.c
- * @brief   로그 출력과 버튼 이벤트 기록을 별도 task로 처리한다.
+ * @brief   로그 출력을 별도 task/queue로 분리하여 blocking 영향을 줄인다.
  *
  * @details
- * - 버튼 처리 경로와 blocking UART 출력을 분리해 event 지연을 줄인다.
- * - 로컬 큐 backlog와 dropped count는 시험 관찰 포인트로 남긴다.
- *
+ * - 버튼 처리 경로와 UART 출력 경로를 분리해 event 지연을 줄인다.
+ * - 로그 출력 실패나 backlog는 시험 관찰 포인트로 사용될 수 있다.
  ****************************************************************************/
 
 #include "rtos_log_service.h"
@@ -16,7 +15,6 @@
 #include "rtos_probe.h"
 #include "rtos_runtime.h"
 
-/* logger task backlog는 관찰 대상이므로 작은 ring buffer로 dropped count를 함께 기록한다. */
 #define RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH 16U
 
 static const char *s_queue[RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH];
@@ -88,16 +86,6 @@ uint32_t RtosLogService_GetPendingCount(void)
     return (RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH - s_tail + s_head);
 }
 
-/**
- * @brief   버튼 이벤트와 logger backlog를 RTOS task 문맥에서 기록한다.
- *
- * @param   argument  RTOS task 인자
- *
- * @details
- * - buttonEventQueue에서 이벤트를 수신해 공통 로그 형식으로 출력한다.
- * - 로컬 ring buffer backlog를 비우면서 processed count를 갱신한다.
- * - heartbeat와 watchdog feed tick은 probe 관찰 값으로만 사용한다.
- */
 void RtosLogService_Task(void *argument)
 {
     uint32_t now_ms;
@@ -115,7 +103,6 @@ void RtosLogService_Task(void *argument)
     {
         qstatus = osErrorTimeout;
 
-        /* queue timeout은 오류보다 idle 구간 관찰을 위한 정상 경로로 본다. */
         if (buttonEventQueueHandle != NULL)
         {
             qstatus = osMessageQueueGet(buttonEventQueueHandle, &evt, NULL, 50U);
@@ -147,14 +134,12 @@ void RtosLogService_Task(void *argument)
             s_processed_count++;
         }
 
-        /* 200ms heartbeat tick은 RTOS 생존성과 logger 지연 관찰 기준이다. */
         if ((now_ms - last_heartbeat_ms) >= 200U)
         {
             OtaRtosProbe_NotifyHeartbeatTick(now_ms);
             last_heartbeat_ms = now_ms;
         }
 
-        /* watchdog feed는 제어 로직이 아니라 servicing 간격 관찰용 probe 값으로 남긴다. */
         if ((now_ms - last_watchdog_ms) >= 100U)
         {
             OtaRtosProbe_NotifyWatchdogFed(now_ms);

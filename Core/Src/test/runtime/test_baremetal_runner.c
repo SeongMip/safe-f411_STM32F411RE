@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    test_baremetal_runner.c
- * @brief   Bare-metal 환경에서 선택된 테스트를 실행한다.
+ * @brief   bare-metal 환경에서 선택된 테스트를 실행한다.
  *
  * @details
- * - 선택된 TC를 반복 호출하며 TEST_IN_REVIEW 상태를 PASS/FAIL로 수렴시킨다.
- *
+ * - 단일 TC 실행 흐름을 관리한다.
+ * - TEST_IN_REVIEW 상태를 주기적으로 재평가하여 최종 PASS/FAIL로 수렴시킨다.
  ****************************************************************************/
 
 #include "test_baremetal_runner.h"
@@ -83,12 +83,6 @@ static const TestCaseEntry* FindSelectedTestCase(RunnerSelection selection)
     return 0;
 }
 
-/**
- * @brief   선택된 Bare-metal TC를 실행하고 최종 PASS/FAIL을 기록한다.
- *
- * @details
- * - TEST_IN_REVIEW 상태는 polling 기반 재평가가 필요하므로 10ms 간격으로 반복 호출한다.
- */
 void TestBaremetalRunner_RunSelected(void)
 {
     const TestCaseEntry* test_case = FindSelectedTestCase(TEST_BAREMETAL_TARGET);

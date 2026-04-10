@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    tc_001_debug_attach_reset.c
- * @brief   debug attach 환경에서 boot/reset 로그 영향을 분리 관찰한다.
+ * @brief   debug attach 시 reset/boot 로그 영향 여부를 관찰한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 디버거 연결 환경에서 나타나는 중복 boot 로그나 초기화 재실행을 분리 관찰한다.
+ * - 기능 결함과 디버그 환경 영향을 혼동하지 않도록 하기 위한 TC이다.
  ****************************************************************************/
 
 #include "tc_001_debug_attach_reset.h"
@@ -16,16 +16,6 @@
 #define TC_001_REQUIRED_HEARTBEATS        3U
 #define TC_001_START_TICK_MAX_MS        500U
 
-
-/**
- * @brief   TC-001의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_001_DebugAttachReset_Run(void)
 {
     static uint8_t started = 0;

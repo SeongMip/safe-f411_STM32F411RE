@@ -5,10 +5,10 @@
  * @details
  * - active-low 버튼 입력을 polling 기반 상태 전이로 판정한다.
  * - 제품 기능 완성보다 재현 가능한 시험 입력 판정을 우선한다.
+ * - debounce, release, long-press 기준은 시간 조건으로 동작한다.
  *
  * @note
- * - 호출 주기가 크게 흔들리면 debounce와 long-press 판정 결과에도 영향이 있을 수 있다.
- *
+ * - 호출 주기가 크게 흔들리면 판정 결과에도 영향이 있을 수 있다.
  ****************************************************************************/
 
 #include "button_fsm.h"
@@ -16,6 +16,7 @@
 
 static inline BtnLevel raw_to_level(PlatformButtonRawState raw)
 {
+    /* active-low 버튼 입력을 기준으로 level을 해석 */
     return (raw == PLATFORM_BUTTON_DOWN) ? BTN_LEVEL_DOWN : BTN_LEVEL_UP;
 }
 
@@ -29,7 +30,7 @@ static inline int ButtonFsm_Elapsed(uint32_t now, uint32_t since, uint32_t thres
  *
  * @param   b           버튼 FSM 인스턴스
  * @param   debounce_ms press 확정 전 debounce 시간
- * @param   release_ms  release 확정 전 release debounce 시간
+ * @param   release_ms  release 확정 전 debounce 시간
  * @param   long_ms     long-press 판정 시간
  *
  * @details
@@ -115,9 +116,9 @@ BtnEvent ButtonFsm_Update(ButtonFsm* b, uint32_t now)
     case ST_DEBOUNCE_UP:
         if (ButtonFsm_Elapsed(now, b->t_mark, b->release_ms))
         {
-            /* release 이후 click 확정: press 중 bounce 오검출 방지 */
             if (raw_to_level(Platform_ButtonReadRaw()) == BTN_LEVEL_UP)
             {
+                /* press 중 bounce 오검출을 막기 위해 release 이후 click 확정 */
                 BtnEvent evt = b->long_fired ? BTN_EVT_NONE : BTN_EVT_CLICK;
                 b->st = ST_IDLE;
                 b->last_level = raw_to_level(Platform_ButtonReadRaw());

@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_002_clock_sanity.c
- * @brief   주기 로그가 기대 시간 오차 내에 있는지 검증한다.
+ * @brief   시스템 tick 또는 주기 로그가 기대 시간 오차 내에 있는지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - clock 설정 이상이 다른 TC 결과를 왜곡하지 않도록 선행 확인한다.
  ****************************************************************************/
 
 #include "tc_002_clock_sanity.h"
@@ -17,16 +16,6 @@
 #define TC_002_TOLERANCE_MAX_MS		1050U
 #define TC_002_REQUIRED_SAMPLES		10U
 
-
-/**
- * @brief   TC-002의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_002_ClockSanity_Run(void)
 {
     static uint8_t started = 0;

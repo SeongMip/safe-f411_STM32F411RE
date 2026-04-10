@@ -3,8 +3,8 @@
  * @brief   단일 click 입력당 LED가 정확히 1회만 토글되는지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - debounce 이후 확정된 click 이벤트만 LED 반영 대상으로 본다.
+ * - bounce나 상태 전이 오류로 1 click당 2회 이상 토글되면 FAIL이다.
  ****************************************************************************/
 
 #include "tc_012_single_click_toggle.h"
@@ -17,15 +17,27 @@
 #define TC_012_EXPECTED_CLICKS 10U
 #define TC_012_LONG_MS         2000U
 
-
 /**
  * @brief   TC-012 단일 click 입력의 1회 토글 보장을 검증한다.
  *
  * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
  *
  * @details
- * - 기대 click 수와 실제 LED 토글 상태를 비교한다.
- * - long 이벤트가 발생하거나 기대 LED 상태와 다르면 FAIL이다.
+ * - 예상 click 횟수와 실제 LED 상태 변화를 비교한다.
+ * - long 이벤트가 발생하면 잘못된 판정으로 보고 FAIL 처리한다.
+ *
+ * @observe
+ * - button FSM 이벤트
+ * - actual LED state
+ * - expected click count 대비 verifier 상태
+ *
+ * @pass
+ * - 정해진 click 횟수 동안 모든 입력이 1회 토글로 끝난다.
+ *
+ * @fail
+ * - long 이벤트 발생
+ * - 중복 toggle
+ * - click 미검출
  */
 TestResult TC_012_SingleClickToggle_Run(void)
 {

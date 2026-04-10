@@ -4,11 +4,11 @@
  *
  * @details
  * - polling 기반 FSM으로 버튼 이벤트를 생성한다.
- * - 이벤트 처리와 후속 로그 경로를 분리하기 위해 queue를 사용한다.
+ * - 이벤트 처리와 후속 로그/검증 경로를 분리하기 위해 queue를 사용한다.
+ * - queue overflow는 즉시 폐기하지 않고 관찰 대상 통계로 남긴다.
  *
  * @note
  * - ISR 직접 UART 출력 대신 task 문맥 처리 구조를 유지한다.
- *
  ****************************************************************************/
 
 #include "rtos_button.h"
@@ -40,11 +40,10 @@ static RtosButtonEventType RtosButton_ConvertEvent(BtnEvent evt)
 
 void RtosButton_Init(void)
 {
-    /* press/release bounce를 줄이기 위해 30ms debounce와 1500ms long-press 기준을 적용 */
-
     s_button_event_queued_count = 0U;
     s_button_queue_overflow_count = 0U;
 
+    /* press/release bounce를 줄이기 위해 30ms debounce와 1500ms long-press 기준을 적용 */
     ButtonFsm_Init(&s_button, 30U, 30U, 1500U);
 }
 
@@ -66,7 +65,7 @@ uint32_t RtosButton_GetQueueOverflowCount(void)
  * @details
  * - 10ms 주기로 버튼 상태를 샘플링한다.
  * - 유효 이벤트가 발생하면 queue에 전달하고 overflow 통계를 기록한다.
- * - 50ms probe tick은 scheduler 지연 관찰 기준으로 사용한다.
+ * - probe tick을 함께 갱신하여 scheduler 지연 관찰에 사용한다.
  */
 void RtosButton_Task(void *argument)
 {
@@ -82,7 +81,6 @@ void RtosButton_Task(void *argument)
     {
         now_ms = Platform_NowMs();
 
-        /* 고우선 경로의 scheduling 지연은 50ms tick 관찰값으로 집계한다. */
         if ((now_ms - last_probe_ms) >= 50U)
         {
             OtaRtosProbe_NotifyHighPrioTaskTick(now_ms);
@@ -103,7 +101,7 @@ void RtosButton_Task(void *argument)
                 }
                 else
                 {
-                    /* queue overflow는 즉시 폐기보다 관찰 통계와 safe-state 판단 근거로 남긴다. */
+                    /* queue overflow는 기능 실패가 아니라 관찰 대상이므로 통계를 남긴다. */
                     s_button_queue_overflow_count++;
                     RtosMonitor_NotifyQueueOverflow();
 
@@ -115,7 +113,6 @@ void RtosButton_Task(void *argument)
             }
         }
 
-        /* 10ms polling 주기는 debounce와 long-press 판정 분해능의 기준이다. */
         Platform_DelayMs(10U);
     }
 }

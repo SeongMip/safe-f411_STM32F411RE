@@ -44,7 +44,6 @@ void vApplicationMallocFailedHook(void)
 
 void MX_FREERTOS_Init(void)
 {
-  /* 공용 service object/task 생성은 실행 역할에 따라 APP/TEST 경로로 나누되 handle 저장공간은 freertos.c에 둔다. */
 #if (EXEC_ROLE == EXEC_ROLE_APP)
   RtosApp_CreateObjects();
   RtosApp_CreateTasks();

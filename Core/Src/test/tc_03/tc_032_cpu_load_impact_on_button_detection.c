@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_032_cpu_load_impact_on_button_detection.c
- * @brief   CPU 부하가 버튼 감지와 로그 흐름에 주는 영향을 관찰한다.
+ * @brief   타이밍 정확도, debounce 안정성, 부하 영향 등을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 기능 동작 여부보다 시간/부하/노이즈 조건에서의 일관성을 보는 그룹이다.
  ****************************************************************************/
 
 #include "tc_032_cpu_load_impact_on_button_detection.h"
@@ -195,16 +194,6 @@ static TestResult TC_032_Verify(TC032_Context* ctx, uint32_t now)
     return ctx->result;
 }
 
-
-/**
- * @brief   TC-032의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_032_CpuLoadImpactOnButtonDetection_Run(void)
 {
     static TC032_Context ctx;

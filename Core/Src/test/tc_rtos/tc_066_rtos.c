@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    tc_066_rtos.c
- * @brief   RTOS monitor와 safe-state 요청 경로가 기대대로 집계되는지 검증한다.
+ * @brief   RTOS 구조에서 task/queue/probe/watchdog 관련 동작을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - bare-metal에서 드러난 한계를 RTOS 구조가 어떻게 완화하는지 확인한다.
+ * - queue 지연, logger 누락, watchdog feed, safe-state 경로를 관찰한다.
  ****************************************************************************/
 
 #include "tc_066_rtos.h"
@@ -34,16 +34,6 @@ static TestResult TC_066_RTOS_Verify(void)
     return TEST_PASS;
 }
 
-
-/**
- * @brief   TC-066의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_066_Rtos_Run(void)
 {
     TC_066_RTOS_Setup();

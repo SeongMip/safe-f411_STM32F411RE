@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_011_button_polling.c
- * @brief   polling 기반 버튼 입력 감지가 일관되게 동작하는지 확인한다.
+ * @brief   polling 기반 버튼 입력 감지가 정상적으로 동작하는지 확인한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - raw 버튼 상태가 UART 또는 내부 판정과 일관되게 반영되는지 관찰한다.
  ****************************************************************************/
 
 #include "tc_011_button_polling.h"
@@ -14,16 +13,6 @@
 
 #define TC_011_TIMEOUT_MS  10000U
 
-
-/**
- * @brief   TC-011의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_011_ButtonPolling_Run(void)
 {
     static uint8_t started = 0;

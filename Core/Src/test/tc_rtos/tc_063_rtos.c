@@ -3,8 +3,8 @@
  * @brief   RTOS 환경에서 watchdog servicing 간격이 허용 범위 내인지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - probe를 이용해 관찰 구간 동안 watchdog feed 존재 여부와 간격 건전성을 확인한다.
+ * - feed 자체가 없거나 허용 gap을 초과하면 FAIL로 판정한다.
  ****************************************************************************/
 
 #include "tc_063_rtos.h"
@@ -22,9 +22,6 @@ typedef struct
     uint8_t feed_seen;
 } TC063Rtos_Context;
 
-/**
- * @brief   TC-063-RTOS 관찰 전 probe 상태를 초기화하고 시작 로그를 남긴다.
- */
 static void TC_063_RTOS_Setup(void)
 {
     OtaRtosProbe_Reset();
@@ -41,7 +38,8 @@ static void TC_063_RTOS_Setup(void)
  * @return  TEST_FAIL 또는 TEST_IN_REVIEW
  *
  * @details
- * - feed가 관찰된 뒤 허용 gap 500ms를 넘으면 즉시 FAIL 처리한다.
+ * - 지정 시간 동안 probe 값을 반복 관찰한다.
+ * - feed가 관찰된 뒤 허용 gap을 초과하면 즉시 FAIL 처리한다.
  */
 static TestResult TC_063_RTOS_Observe(TC063Rtos_Context* ctx)
 {
@@ -76,6 +74,10 @@ static TestResult TC_063_RTOS_Observe(TC063Rtos_Context* ctx)
  * @param   ctx  관찰 상태 컨텍스트
  *
  * @return  TEST_PASS 또는 TEST_FAIL
+ *
+ * @details
+ * - 관찰 시간 동안 feed가 단 한 번도 없으면 FAIL이다.
+ * - feed 존재와 gap 건전성이 확인되면 PASS로 판정한다.
  */
 static TestResult TC_063_RTOS_Verify(const TC063Rtos_Context* ctx)
 {
@@ -90,9 +92,13 @@ static TestResult TC_063_RTOS_Verify(const TC063Rtos_Context* ctx)
 }
 
 /**
- * @brief   TC-063-RTOS watchdog servicing 검증을 수행한다.
+ * @brief   TC-063 RTOS watchdog servicing validation을 수행한다.
  *
  * @return  TEST_PASS / TEST_FAIL
+ *
+ * @details
+ * - probe를 초기화한 뒤 3초 동안 watchdog feed 존재와 gap 건전성을 관찰한다.
+ * - feed 부재 또는 허용 gap 초과를 FAIL 기준으로 사용한다.
  */
 TestResult TC_063_Rtos_Run(void)
 {

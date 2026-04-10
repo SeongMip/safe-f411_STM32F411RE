@@ -3,8 +3,7 @@
  * @brief   버튼 이벤트와 UART 로그 표현이 일관되게 매핑되는지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - LED 반응과 UART 로그 시점 차이를 구분해 관찰하는 기준 TC이다.
  ****************************************************************************/
 
 #include "tc_022_button_event_uart_mapping.h"
@@ -18,16 +17,6 @@
 #define TC_022_EXPECTED_CLICKS 10U
 #define TC_022_LONG_MS 2000U
 
-
-/**
- * @brief   TC-022의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_022_ButtonEventUartMap_Run(void)
 {
     static ButtonFsm btn;

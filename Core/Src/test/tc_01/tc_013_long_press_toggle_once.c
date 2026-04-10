@@ -3,8 +3,7 @@
  * @brief   long-press 입력이 1회만 반영되는지 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - press 유지 중 이벤트 재발행이 없음을 확인한다.
  ****************************************************************************/
 
 #include "tc_013_long_press_toggle_once.h"
@@ -17,16 +16,6 @@
 #define TC_013_EXPECTED_LONGS 3U
 #define TC_013_LONG_MS        2000U
 
-
-/**
- * @brief   TC-013의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_013_LongPressToggleOnce_Run(void)
 {
     static ButtonFsm btn;

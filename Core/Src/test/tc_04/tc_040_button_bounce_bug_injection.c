@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_040_button_bounce_bug_injection.c
- * @brief   bounce 취약 조건을 의도적으로 노출해 결함 재현성을 확인한다.
+ * @brief   결함 재현을 위해 의도적으로 취약 조건을 관찰하거나 결함 시나리오를 분리한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 기능 구현보다 재현성과 원인 분리를 목적으로 한다.
  ****************************************************************************/
 
 #include "tc_040_button_bounce_bug_injection.h"
@@ -87,16 +86,6 @@ static TestResult TC_040_Verify(TC040_Context* ctx, uint32_t now)
     return TEST_IN_REVIEW;
 }
 
-
-/**
- * @brief   TC-040의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_040_ButtonBounceBugInjection_Run(void)
 {
     static TC040_Context ctx;

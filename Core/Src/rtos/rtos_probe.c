@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    rtos_probe.c
- * @brief   RTOS heartbeat, high-priority tick, watchdog feed 관찰 값을 수집한다.
+ * @brief   RTOS 동작 관찰용 probe 통계를 수집한다.
  *
  * @details
- * - probe 값은 제품 제어가 아니라 시험 관찰용 통계로 사용한다.
- *
+ * - watchdog feed, task tick, queue 처리량 등 시험 관찰 값을 저장한다.
+ * - probe 값은 제품 기능 제어가 아니라 검증용 관찰 데이터이다.
  ****************************************************************************/
 
 #include "rtos_probe.h"
@@ -21,12 +21,6 @@ static uint32_t s_heartbeat_count;
 static uint32_t s_high_prio_count;
 static uint32_t s_watchdog_feed_count;
 
-/**
- * @brief   RTOS 관찰용 probe 통계를 초기화한다.
- *
- * @details
- * - probe 값은 제품 제어가 아니라 TC와 monitor의 관찰 근거로 사용한다.
- */
 void OtaRtosProbe_Reset(void)
 {
     s_last_heartbeat_ms = 0U;
@@ -154,14 +148,6 @@ uint8_t OtaRtosProbe_IsOtaTimeout(uint32_t now_ms, const OtaRtosCriteria* criter
     return ((now_ms - s_last_packet_ms) > criteria->ota_timeout_ms);
 }
 
-/**
- * @brief   마지막 watchdog feed 이후 간격이 허용 범위 내인지 확인한다.
- *
- * @param   now_ms           현재 tick(ms)
- * @param   max_feed_gap_ms  허용 가능한 최대 feed 공백
- *
- * @return  1이면 healthy, 0이면 unhealthy
- */
 uint8_t OtaRtosProbe_IsWatchdogFeedHealthy(uint32_t now_ms, uint32_t max_feed_gap_ms)
 {
     if (s_watchdog_feed_count == 0U)

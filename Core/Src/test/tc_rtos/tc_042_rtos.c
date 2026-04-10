@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    tc_042_rtos.c
- * @brief   RTOS logger queue 처리량과 누락 여부를 검증한다.
+ * @brief   RTOS 구조에서 task/queue/probe/watchdog 관련 동작을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - bare-metal에서 드러난 한계를 RTOS 구조가 어떻게 완화하는지 확인한다.
+ * - queue 지연, logger 누락, watchdog feed, safe-state 경로를 관찰한다.
  ****************************************************************************/
 
 #include "tc_042_rtos.h"
@@ -53,6 +53,17 @@ static void TC_042_RTOS_Stimulus(void)
     }
 }
 
+/**
+ * @brief   logger queue가 관찰 시간 안에 모두 처리되는지 확인한다.
+ *
+ * @param   ctx  처리량과 queue 상태를 저장하는 관찰 컨텍스트
+ *
+ * @return  TEST_FAIL 또는 TEST_IN_REVIEW
+ *
+ * @details
+ * - 지정 시간 안에 processed가 목표 수에 도달하고 pending이 0이 되면 다음 판정 단계로 넘긴다.
+ * - timeout까지 queue가 비워지지 않으면 logger 누락 또는 지연으로 본다.
+ */
 static TestResult TC_042_RTOS_Observe(TC042Rtos_Context* ctx)
 {
     ctx->start_ms = Platform_NowMs();
@@ -82,6 +93,17 @@ static TestResult TC_042_RTOS_Observe(TC042Rtos_Context* ctx)
     }
 }
 
+/**
+ * @brief   logger 통계가 기대 조건과 일치하는지 최종 판정한다.
+ *
+ * @param   ctx  처리량과 queue 상태를 저장한 관찰 컨텍스트
+ *
+ * @return  TEST_PASS 또는 TEST_FAIL
+ *
+ * @details
+ * - dropped가 0이어야 하며 processed는 목표 개수와 일치해야 한다.
+ * - pending이 남아 있으면 queue drain 실패로 FAIL 처리한다.
+ */
 static TestResult TC_042_RTOS_Verify(TC042Rtos_Context* ctx)
 {
     ctx->processed = RtosLogService_GetProcessedCount();
@@ -120,14 +142,14 @@ static TestResult TC_042_RTOS_Verify(TC042Rtos_Context* ctx)
     return TEST_PASS;
 }
 
-
 /**
- * @brief   TC-042-RTOS logger queue 처리량과 누락 여부를 검증한다.
+ * @brief   TC-042 RTOS logger omission validation을 수행한다.
  *
  * @return  TEST_PASS / TEST_FAIL
  *
  * @details
- * - push된 메시지 수와 processed/dropped/pending 통계를 비교해 logger 경로 건전성을 본다.
+ * - logger queue에 8개 메시지를 밀어 넣고 timeout 내 처리 여부를 관찰한다.
+ * - dropped, processed, pending 통계를 이용해 누락 여부를 판정한다.
  */
 TestResult TC_042_Rtos_Run(void)
 {

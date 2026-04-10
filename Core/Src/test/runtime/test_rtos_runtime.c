@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    test_rtos_runtime.c
- * @brief   RTOS 테스트 전용 task를 공용 RTOS 서비스 위에 추가한다.
+ * @brief   RTOS 테스트 실행에 필요한 공통 runtime 상태를 관리한다.
  *
  * @details
- * - queue와 공용 service task 생성은 rtos_app 계층에 위임하고 테스트 task만 별도로 생성한다.
- *
+ * - 테스트 실행 정책, 상태값, 공통 헬퍼를 RTOS 전용으로 제공한다.
  ****************************************************************************/
 
 #include "test_rtos_runtime.h"
@@ -20,12 +19,7 @@ static const osThreadAttr_t rtosTestTask_attributes = {
     .priority = (osPriority_t) osPriorityLow,
 };
 
-/**
- * @brief   RTOS 테스트 전용 task에서 선택된 RTOS TC를 시작한다.
- *
- * @details
- * - scheduler 기동 직후 300ms 대기 후 테스트를 시작해 초기 boot log와 object 생성 구간을 분리한다.
- */
+/* RTOS 테스트 태스크가 기동 후 잠시 대기한 뒤 전체 RTOS 테스트를 수행한다. */
 static void StartRtosTestTask(void *argument)
 {
     (void)argument;
@@ -39,23 +33,13 @@ static void StartRtosTestTask(void *argument)
     }
 }
 
-/**
- * @brief   RTOS 테스트 경로에서 공용 queue object를 생성한다.
- *
- * @details
- * - TEST/RTOS 경로는 object 생성 자체가 아니라 공용 rtos_app 계층 재사용에 의미가 있다.
- */
+/* RTOS 테스트에 필요한 공용 큐 객체를 RTOS 앱 계층에서 생성한다. */
 void TestRtosRuntime_CreateObjects(void)
 {
     RtosApp_CreateObjects();
 }
 
-/**
- * @brief   공용 service task 뒤에 RTOS 테스트 전용 task를 추가한다.
- *
- * @details
- * - button/logger task 생성은 rtos_app 계층에 위임하고 테스트 runner task만 별도로 올린다.
- */
+/* RTOS 테스트에 필요한 공용 태스크를 생성한 뒤 테스트 전용 태스크를 추가한다. */
 void TestRtosRuntime_CreateTasks(void)
 {
     RtosApp_CreateTasks();

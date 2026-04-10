@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    tc_065_reset_recovery_observation.c
- * @brief   reset 이후 복구 로그와 초기 상태를 관찰한다.
+ * @brief   수정 이후 회귀, 스트레스, 안정성, 복구 특성을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 기능 fix 이후 다른 경로가 깨지지 않았는지 확인한다.
+ * - 장시간 동작, reset/power cycle, safe-state 관련 관찰을 포함할 수 있다.
  ****************************************************************************/
 
 #include "tc_065_reset_recovery_observation.h"
@@ -86,16 +86,6 @@ static TestResult TC_065_Verify(TC065_Context* ctx, uint32_t now)
     return pass ? TEST_PASS : TEST_FAIL;
 }
 
-
-/**
- * @brief   TC-065의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_065_ResetRecoveryObservation_Run(void)
 {
     static TC065_Context ctx;

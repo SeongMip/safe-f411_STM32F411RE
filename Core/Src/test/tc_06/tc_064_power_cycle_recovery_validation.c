@@ -1,10 +1,10 @@
 /****************************************************************************
  * @file    tc_064_power_cycle_recovery_validation.c
- * @brief   power cycle 이후 초기화와 복구 동작을 검증한다.
+ * @brief   수정 이후 회귀, 스트레스, 안정성, 복구 특성을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 기능 fix 이후 다른 경로가 깨지지 않았는지 확인한다.
+ * - 장시간 동작, reset/power cycle, safe-state 관련 관찰을 포함할 수 있다.
  ****************************************************************************/
 
 #include "tc_064_power_cycle_recovery_validation.h"
@@ -77,16 +77,6 @@ static TestResult TC_064_Verify(TC064_Context* ctx, uint32_t now)
     return pass ? TEST_PASS : TEST_FAIL;
 }
 
-
-/**
- * @brief   TC-064의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_064_PowerCycleRecoveryValidation_Run(void)
 {
     static TC064_Context ctx;

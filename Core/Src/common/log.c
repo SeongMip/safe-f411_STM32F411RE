@@ -3,8 +3,9 @@
  * @brief   공통 로그 출력 형식과 UART 전송 경로를 제공한다.
  *
  * @details
- * - bare-metal과 RTOS에서 동일한 로그 태그 체계를 유지하기 위한 공통 계층이다.
- *
+ * - 시험 로그의 형식 일관성을 유지하기 위한 공통 계층이다.
+ * - bare-metal과 RTOS에서 동일한 로그 표현을 유지하는 것이 목적이다.
+ * - 출력 자체보다 로그 레벨과 메시지 규약 유지가 중요하다.
  ****************************************************************************/
 
 #include "log.h"
@@ -80,6 +81,8 @@ void Log_Printf(LogLevel level, const char* fmt, ...)
     Log_Write(level, buf);
 }
 
+
+/* 이전 test_logger 심볼을 현재 공용 로그 구현으로 직접 연결한다. */
 void TestLogger_Printf(LogLevel level, const char* fmt, ...)
 {
     char buf[LOG_BUF_SIZE];

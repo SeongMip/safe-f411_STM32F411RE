@@ -4,8 +4,7 @@
  *
  * @details
  * - selection 값에 따라 대상 TC를 결정한다.
- * - TEST_IN_REVIEW 상태이면 주기적으로 재호출하여 종료 조건을 기다린다.
- *
+ * - TEST_IN_REVIEW 상태를 반복 평가한 뒤 최종 PASS/FAIL을 출력한다.
  ****************************************************************************/
 
 #include "test_rtos_runner.h"
@@ -45,11 +44,12 @@ static const RtosTestCaseEntry* FindSelectedRtosTestCase(RtosRunnerSelection sel
 }
 
 /**
- * @brief   선택된 RTOS TC를 실행하고 최종 PASS/FAIL을 기록한다.
+ * @brief   선택된 RTOS 테스트를 실행한다.
  *
  * @details
  * - 유효하지 않은 selection은 즉시 오류로 기록한다.
- * - TEST_IN_REVIEW 상태는 10ms 간격으로 재평가한다.
+ * - 테스트가 리뷰 중 상태이면 일정 주기로 재호출하여 종료 조건을 기다린다.
+ * - 최종 결과는 공통 로그 형식으로 출력한다.
  */
 void TestRtosRunner_RunSelected(void)
 {

@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_050_debounce_fix_validation.c
- * @brief   debounce 수정 후 click 판정이 정상화되었는지 검증한다.
+ * @brief   수정 후 정상 동작과 fix 효과를 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 결함 재현 TC와 대응 관계를 가지며, 수정 효과가 실제로 반영되었는지 확인한다.
  ****************************************************************************/
 
 #include "tc_050_debounce_fix_validation.h"
@@ -122,16 +121,6 @@ static TestResult TC_050_Verify(TC050_Context* ctx, uint32_t now)
     return ctx->result;
 }
 
-
-/**
- * @brief   TC-050의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_050_DebounceFixValidation_Run(void)
 {
     static TC050_Context ctx;

@@ -1,10 +1,9 @@
 /****************************************************************************
  * @file    tc_031_button_debounce_stability_validation.c
- * @brief   debounce 기준이 반복 입력에서도 안정적으로 유지되는지 검증한다.
+ * @brief   타이밍 정확도, debounce 안정성, 부하 영향 등을 검증한다.
  *
  * @details
- * - 시험 절차보다 관찰 포인트와 PASS/FAIL 판정 기준 설명을 우선한다.
- *
+ * - 기능 동작 여부보다 시간/부하/노이즈 조건에서의 일관성을 보는 그룹이다.
  ****************************************************************************/
 
 #include "tc_031_button_debounce_stability_validation.h"
@@ -193,16 +192,6 @@ static TestResult TC_031_Verify(TC031_Context* ctx, uint32_t now)
     return TEST_IN_REVIEW;
 }
 
-
-/**
- * @brief   TC-031의 최종 PASS/FAIL 판정을 수행한다.
- *
- * @return  TEST_PASS / TEST_FAIL / TEST_IN_REVIEW
- *
- * @details
- * - 이 TC는 파일 상단에 정의된 관찰 포인트를 기준으로 결과를 반환한다.
- * - TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태를 의미한다.
- */
 TestResult TC_031_ButtonDebounceStabilityValidation_Run(void)
 {
     static TC031_Context ctx;

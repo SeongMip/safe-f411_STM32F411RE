@@ -1,9 +1,3 @@
-/****************************************************************************
- * @file    test_baremetal_runner.h
- * @brief   Bare-metal 테스트 선택 및 실행 API를 선언한다.
- *
- ****************************************************************************/
-
 #ifndef TEST_BAREMETAL_RUNNER_H
 #define TEST_BAREMETAL_RUNNER_H
 

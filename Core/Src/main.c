@@ -47,7 +47,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* main은 APP/TEST와 Bare-metal/RTOS 부팅 경로 선택만 담당하고 세부 실행은 하위 계층으로 위임한다. */
 /* USER CODE END 0 */
 
 int main(void)
@@ -63,7 +62,6 @@ int main(void)
   TestBaremetalRunner_RunSelected();
 #elif (EXEC_ROLE == EXEC_ROLE_TEST) && (EXEC_MODEL == EXEC_MODEL_RTOS)
   Log_Printf(LOG_LEVEL_INFO, "[BOOT] mode=TEST/RTOS\r\n");
-  /* TEST/RTOS는 공용 RTOS service를 초기화한 뒤 freertos.c에서 test task를 추가 생성한다. */
   RtosApp_Init();
   osKernelInitialize();
   MX_FREERTOS_Init();
@@ -71,7 +69,6 @@ int main(void)
   Error_Handler();
 #elif (EXEC_ROLE == EXEC_ROLE_APP) && (EXEC_MODEL == EXEC_MODEL_RTOS)
   Log_Printf(LOG_LEVEL_INFO, "[BOOT] mode=APP/RTOS\r\n");
-  /* APP/RTOS는 동일한 공용 RTOS service만 사용하고 별도 test task는 생성하지 않는다. */
   RtosApp_Init();
   osKernelInitialize();
   MX_FREERTOS_Init();
