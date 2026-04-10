@@ -9,10 +9,17 @@
 
 #include "rtos_monitor.h"
 
+#define RTOS_MONITOR_STACK_WARNING_MIN_WATERMARK 64U
+
 static volatile uint8_t s_safe_state_requested;
 static volatile uint32_t s_queue_overflow_count;
 static volatile uint32_t s_last_stack_warning_task_id;
 static volatile uint32_t s_last_stack_warning_watermark;
+
+static uint8_t RtosMonitor_ShouldRequestSafeStateOnStackWarning(uint32_t watermark)
+{
+    return (watermark < RTOS_MONITOR_STACK_WARNING_MIN_WATERMARK) ? 1U : 0U;
+}
 
 void RtosMonitor_Init(void)
 {
@@ -33,8 +40,10 @@ void RtosMonitor_NotifyStackWarning(uint32_t task_id, uint32_t watermark)
     s_last_stack_warning_task_id = task_id;
     s_last_stack_warning_watermark = watermark;
 
-    if (watermark < 64U)
+    if (RtosMonitor_ShouldRequestSafeStateOnStackWarning(watermark))
+    {
         s_safe_state_requested = 1U;
+    }
 }
 
 void RtosMonitor_RequestSafeState(void)

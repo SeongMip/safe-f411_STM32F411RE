@@ -15,7 +15,10 @@
 #include "rtos_probe.h"
 #include "rtos_runtime.h"
 
-#define RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH 16U
+#define RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH    16U
+#define RTOS_LOG_SERVICE_EVENT_WAIT_MS        50U
+#define RTOS_LOG_SERVICE_HEARTBEAT_PERIOD_MS 200U
+#define RTOS_LOG_SERVICE_WATCHDOG_PERIOD_MS  100U
 
 static const char *s_queue[RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH];
 static volatile uint32_t s_head;
@@ -33,6 +36,61 @@ static const char* RtosLogService_ButtonEventToString(RtosButtonEventType type)
         return "LONG";
     default:
         return "NONE";
+    }
+}
+
+static uint8_t RtosLogService_IsLocalQueueEmpty(void)
+{
+    return (s_head == s_tail) ? 1U : 0U;
+}
+
+static uint8_t RtosLogService_IsLocalQueueFull(uint32_t next_head)
+{
+    return (next_head == s_tail) ? 1U : 0U;
+}
+
+static void RtosLogService_ProcessButtonEvent(osStatus_t qstatus, const RtosButtonEvent* evt)
+{
+    if (qstatus != osOK)
+    {
+        return;
+    }
+
+    Log_Printf(LOG_LEVEL_INFO,
+               "[RTOS_EVENT] type=%s tick=%lu\r\n",
+               RtosLogService_ButtonEventToString(evt->type),
+               (unsigned long)evt->tick_ms);
+}
+
+static void RtosLogService_ProcessLocalQueue(void)
+{
+    while (!RtosLogService_IsLocalQueueEmpty())
+    {
+        const char *msg = s_queue[s_tail];
+        s_tail = (s_tail + 1U) % RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH;
+
+        Log_Printf(LOG_LEVEL_INFO,
+                   "[RTOS_LOG_SERVICE] %s\r\n",
+                   (msg != 0) ? msg : "(null)");
+
+        s_processed_count++;
+    }
+}
+
+static void RtosLogService_UpdateProbeTicks(uint32_t now_ms,
+                                            uint32_t* last_heartbeat_ms,
+                                            uint32_t* last_watchdog_ms)
+{
+    if ((now_ms - *last_heartbeat_ms) >= RTOS_LOG_SERVICE_HEARTBEAT_PERIOD_MS)
+    {
+        OtaRtosProbe_NotifyHeartbeatTick(now_ms);
+        *last_heartbeat_ms = now_ms;
+    }
+
+    if ((now_ms - *last_watchdog_ms) >= RTOS_LOG_SERVICE_WATCHDOG_PERIOD_MS)
+    {
+        OtaRtosProbe_NotifyWatchdogFed(now_ms);
+        *last_watchdog_ms = now_ms;
     }
 }
 
@@ -56,7 +114,7 @@ void RtosLogService_Push(const char *msg)
 {
     uint32_t next = (s_head + 1U) % RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH;
 
-    if (next == s_tail)
+    if (RtosLogService_IsLocalQueueFull(next))
     {
         s_dropped_count++;
         return;
@@ -105,46 +163,20 @@ void RtosLogService_Task(void *argument)
 
         if (buttonEventQueueHandle != NULL)
         {
-            qstatus = osMessageQueueGet(buttonEventQueueHandle, &evt, NULL, 50U);
+            qstatus = osMessageQueueGet(buttonEventQueueHandle,
+                                        &evt,
+                                        NULL,
+                                        RTOS_LOG_SERVICE_EVENT_WAIT_MS);
         }
         else
         {
-            Platform_DelayMs(50U);
+            Platform_DelayMs(RTOS_LOG_SERVICE_EVENT_WAIT_MS);
         }
 
         now_ms = Platform_NowMs();
-
-        if (qstatus == osOK)
-        {
-            Log_Printf(LOG_LEVEL_INFO,
-                       "[RTOS_EVENT] type=%s tick=%lu\r\n",
-                       RtosLogService_ButtonEventToString(evt.type),
-                       (unsigned long)evt.tick_ms);
-        }
-
-        while (s_tail != s_head)
-        {
-            const char *msg = s_queue[s_tail];
-            s_tail = (s_tail + 1U) % RTOS_LOG_SERVICE_LOCAL_QUEUE_DEPTH;
-
-            Log_Printf(LOG_LEVEL_INFO,
-                       "[RTOS_LOG_SERVICE] %s\r\n",
-                       (msg != 0) ? msg : "(null)");
-
-            s_processed_count++;
-        }
-
-        if ((now_ms - last_heartbeat_ms) >= 200U)
-        {
-            OtaRtosProbe_NotifyHeartbeatTick(now_ms);
-            last_heartbeat_ms = now_ms;
-        }
-
-        if ((now_ms - last_watchdog_ms) >= 100U)
-        {
-            OtaRtosProbe_NotifyWatchdogFed(now_ms);
-            last_watchdog_ms = now_ms;
-        }
+        RtosLogService_ProcessButtonEvent(qstatus, &evt);
+        RtosLogService_ProcessLocalQueue();
+        RtosLogService_UpdateProbeTicks(now_ms, &last_heartbeat_ms, &last_watchdog_ms);
     }
 }
 

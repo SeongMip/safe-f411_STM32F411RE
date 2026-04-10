@@ -12,8 +12,9 @@
 #include "platform_port.h"
 #include "rtos_log_service.h"
 
-#define TC_042_RTOS_PUSH_COUNT  8U
-#define TC_042_RTOS_TIMEOUT_MS 1500U
+#define TC_042_RTOS_PUSH_COUNT   8U
+#define TC_042_RTOS_TIMEOUT_MS   1500U
+#define TC_042_RTOS_OBSERVE_STEP_MS 20U
 
 typedef struct
 {
@@ -35,12 +36,24 @@ static const char *kTc042RtosMsgs[TC_042_RTOS_PUSH_COUNT] =
     "TC_042_RTOS msg_07"
 };
 
+static void TC_042_RTOS_UpdateStats(TC042Rtos_Context* ctx)
+{
+    ctx->processed = RtosLogService_GetProcessedCount();
+    ctx->dropped = RtosLogService_GetDroppedCount();
+    ctx->pending = RtosLogService_GetPendingCount();
+}
+
+static uint8_t TC_042_RTOS_IsDrainComplete(const TC042Rtos_Context* ctx)
+{
+    return ((ctx->processed >= TC_042_RTOS_PUSH_COUNT) && (ctx->pending == 0U)) ? 1U : 0U;
+}
+
 static void TC_042_RTOS_Setup(void)
 {
     RtosLogService_ResetStats();
 
     Log_Printf(LOG_LEVEL_INFO,
-              "[TC_042_RTOS] START logger omission validation under RTOS\r\n");
+               "[TC_042_RTOS] START logger omission validation under RTOS\r\n");
 }
 
 static void TC_042_RTOS_Stimulus(void)
@@ -70,11 +83,9 @@ static TestResult TC_042_RTOS_Observe(TC042Rtos_Context* ctx)
 
     for (;;)
     {
-        ctx->processed = RtosLogService_GetProcessedCount();
-        ctx->dropped = RtosLogService_GetDroppedCount();
-        ctx->pending = RtosLogService_GetPendingCount();
+        TC_042_RTOS_UpdateStats(ctx);
 
-        if ((ctx->processed >= TC_042_RTOS_PUSH_COUNT) && (ctx->pending == 0U))
+        if (TC_042_RTOS_IsDrainComplete(ctx))
         {
             return TEST_IN_REVIEW;
         }
@@ -82,14 +93,14 @@ static TestResult TC_042_RTOS_Observe(TC042Rtos_Context* ctx)
         if ((Platform_NowMs() - ctx->start_ms) >= TC_042_RTOS_TIMEOUT_MS)
         {
             Log_Printf(LOG_LEVEL_ERROR,
-                      "[TC_042_RTOS] timeout processed=%lu dropped=%lu pending=%lu\r\n",
-                      (unsigned long)ctx->processed,
-                      (unsigned long)ctx->dropped,
-                      (unsigned long)ctx->pending);
+                       "[TC_042_RTOS] timeout processed=%lu dropped=%lu pending=%lu\r\n",
+                       (unsigned long)ctx->processed,
+                       (unsigned long)ctx->dropped,
+                       (unsigned long)ctx->pending);
             return TEST_FAIL;
         }
 
-        Platform_DelayMs(20U);
+        Platform_DelayMs(TC_042_RTOS_OBSERVE_STEP_MS);
     }
 }
 
@@ -106,36 +117,34 @@ static TestResult TC_042_RTOS_Observe(TC042Rtos_Context* ctx)
  */
 static TestResult TC_042_RTOS_Verify(TC042Rtos_Context* ctx)
 {
-    ctx->processed = RtosLogService_GetProcessedCount();
-    ctx->dropped = RtosLogService_GetDroppedCount();
-    ctx->pending = RtosLogService_GetPendingCount();
+    TC_042_RTOS_UpdateStats(ctx);
 
     Log_Printf(LOG_LEVEL_INFO,
-              "[TC_042_RTOS] processed=%lu dropped=%lu pending=%lu\r\n",
-              (unsigned long)ctx->processed,
-              (unsigned long)ctx->dropped,
-              (unsigned long)ctx->pending);
+               "[TC_042_RTOS] processed=%lu dropped=%lu pending=%lu\r\n",
+               (unsigned long)ctx->processed,
+               (unsigned long)ctx->dropped,
+               (unsigned long)ctx->pending);
 
     if (ctx->dropped != 0U)
     {
         Log_Printf(LOG_LEVEL_ERROR,
-                  "[TC_042_RTOS] logger dropped messages\r\n");
+                   "[TC_042_RTOS] logger dropped messages\r\n");
         return TEST_FAIL;
     }
 
     if (ctx->processed != TC_042_RTOS_PUSH_COUNT)
     {
         Log_Printf(LOG_LEVEL_ERROR,
-                  "[TC_042_RTOS] processed mismatch expected=%u actual=%lu\r\n",
-                  (unsigned)TC_042_RTOS_PUSH_COUNT,
-                  (unsigned long)ctx->processed);
+                   "[TC_042_RTOS] processed mismatch expected=%u actual=%lu\r\n",
+                   (unsigned)TC_042_RTOS_PUSH_COUNT,
+                   (unsigned long)ctx->processed);
         return TEST_FAIL;
     }
 
     if (ctx->pending != 0U)
     {
         Log_Printf(LOG_LEVEL_ERROR,
-                  "[TC_042_RTOS] logger queue not drained\r\n");
+                    "[TC_042_RTOS] logger queue not drained\r\n");
         return TEST_FAIL;
     }
 

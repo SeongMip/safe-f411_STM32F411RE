@@ -18,7 +18,8 @@
 #include "tc_063_rtos.h"
 #include "tc_066_rtos.h"
 
-typedef TestResult (*RtosTestRunFn)(void);
+#define RTOS_TEST_REVIEW_RETRY_DELAY_MS 10U
+#define RTOS_TEST_CASE_COUNT (sizeof(g_rtos_test_cases) / sizeof(g_rtos_test_cases[0]))
 
 static const RtosTestCaseEntry g_rtos_test_cases[] =
 {
@@ -33,14 +34,56 @@ static const RtosTestCaseEntry* FindSelectedRtosTestCase(RtosRunnerSelection sel
 {
     uint32_t i;
 
-    for (i = 0U; i < (sizeof(g_rtos_test_cases) / sizeof(g_rtos_test_cases[0])); i++)
+    for (i = 0U; i < RTOS_TEST_CASE_COUNT; i++)
     {
         if (g_rtos_test_cases[i].selection == selection)
         {
             return &g_rtos_test_cases[i];
         }
     }
+
     return 0;
+}
+
+static void TestRtosRunner_LogInvalidSelection(RtosRunnerSelection selection)
+{
+    Log_Printf(LOG_LEVEL_ERROR,
+               "[RTOS_TEST] invalid selection=%d\r\n",
+               (int)selection);
+}
+
+static void TestRtosRunner_LogStart(const RtosTestCaseEntry* test_case)
+{
+    Log_Printf(LOG_LEVEL_INFO,
+               "[RTOS_TEST] START %s\r\n",
+               test_case->id);
+}
+
+static void TestRtosRunner_LogEnd(const RtosTestCaseEntry* test_case, TestResult result)
+{
+    Log_Printf(LOG_LEVEL_INFO,
+               "[RTOS_TEST] %s => %s\r\n",
+               test_case->id,
+               (result == TEST_PASS) ? "PASS" : "FAIL");
+
+    Log_Printf(LOG_LEVEL_INFO, "[RTOS_TEST] END\r\n");
+}
+
+static TestResult TestRtosRunner_RunUntilFinalResult(const RtosTestCaseEntry* test_case)
+{
+    TestResult result;
+
+    do
+    {
+        result = test_case->run();
+        if (result == TEST_IN_REVIEW)
+        {
+            /* TEST_IN_REVIEW는 시간 경과 후 재평가가 필요한 상태 */
+            Platform_DelayMs(RTOS_TEST_REVIEW_RETRY_DELAY_MS);
+        }
+    } while (result == TEST_IN_REVIEW);
+
+    return result;
 }
 
 /**
@@ -59,29 +102,11 @@ void TestRtosRunner_RunSelected(void)
     test_case = FindSelectedRtosTestCase(TEST_RTOS_TARGET);
     if (test_case == 0)
     {
-        Log_Printf(LOG_LEVEL_ERROR,
-                   "[RTOS_TEST] invalid selection=%d\r\n",
-                   (int)TEST_RTOS_TARGET);
+        TestRtosRunner_LogInvalidSelection(TEST_RTOS_TARGET);
         return;
     }
 
-    Log_Printf(LOG_LEVEL_INFO,
-               "[RTOS_TEST] START %s\r\n",
-               test_case->id);
-
-    do
-    {
-        result = test_case->run();
-        if (result == TEST_IN_REVIEW)
-        {
-            Platform_DelayMs(10U);
-        }
-    } while (result == TEST_IN_REVIEW);
-
-    Log_Printf(LOG_LEVEL_INFO,
-               "[RTOS_TEST] %s => %s\r\n",
-               test_case->id,
-               (result == TEST_PASS) ? "PASS" : "FAIL");
-
-    Log_Printf(LOG_LEVEL_INFO, "[RTOS_TEST] END\r\n");
+    TestRtosRunner_LogStart(test_case);
+    result = TestRtosRunner_RunUntilFinalResult(test_case);
+    TestRtosRunner_LogEnd(test_case, result);
 }

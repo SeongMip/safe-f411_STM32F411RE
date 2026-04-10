@@ -15,7 +15,49 @@
 #include "toggle_verifier.h"
 
 #define TC_012_EXPECTED_CLICKS 10U
-#define TC_012_LONG_MS         2000U
+#define TC_012_LONG_MS       2000U
+
+typedef struct
+{
+    uint8_t initialized;
+    ButtonFsm button;
+    TestToggleVerifier verifier;
+} TC012Context;
+
+static void TC_012_Setup(TC012Context* ctx)
+{
+    if (ctx->initialized)
+    {
+        return;
+    }
+
+    ButtonFsm_Init(&ctx->button, TEST_DEBOUNCE_MS, TEST_RELEASE_MS, TC_012_LONG_MS);
+    TestToggleVerifier_Init(&ctx->verifier,
+                            "TC_012",
+                            "click",
+                            TC_012_EXPECTED_CLICKS,
+                            Platform_LedRead());
+    ctx->initialized = 1U;
+}
+
+static TestResult TC_012_ObserveAndVerify(TC012Context* ctx, BtnEvent evt)
+{
+    PlatformLedState actual_led_state;
+
+    switch (evt)
+    {
+    case BTN_EVT_CLICK:
+        Platform_LedToggle();
+        actual_led_state = Platform_LedRead();
+        return TestToggleVerifier_OnExpectedEvent(&ctx->verifier, actual_led_state);
+
+    case BTN_EVT_LONG:
+        return TestToggleVerifier_OnUnexpectedEvent(&ctx->verifier, "long");
+
+    default:
+        return TEST_IN_REVIEW;
+    }
+}
 
 /**
  * @brief   TC-012 단일 click 입력의 1회 토글 보장을 검증한다.
@@ -41,35 +83,11 @@
  */
 TestResult TC_012_SingleClickToggle_Run(void)
 {
-    static ButtonFsm btn;
-    static TestToggleVerifier verifier = {0};
-
+    static TC012Context ctx = {0};
     uint32_t now = Platform_NowMs();
-    PlatformLedState actual_led_state;
+    BtnEvent evt;
 
-    if (!verifier.inited)
-    {
-        ButtonFsm_Init(&btn, TEST_DEBOUNCE_MS, TEST_RELEASE_MS, TC_012_LONG_MS);
-        TestToggleVerifier_Init(&verifier,
-                                "TC_012",
-                                "click",
-                                TC_012_EXPECTED_CLICKS,
-                                Platform_LedRead());
-    }
-
-    switch (ButtonFsm_Update(&btn, now))
-    {
-    case BTN_EVT_CLICK:
-        Platform_LedToggle();
-        actual_led_state = Platform_LedRead();
-        return TestToggleVerifier_OnExpectedEvent(&verifier, actual_led_state);
-
-    case BTN_EVT_LONG:
-        return TestToggleVerifier_OnUnexpectedEvent(&verifier, "long");
-
-    default:
-        break;
-    }
-
-    return TEST_IN_REVIEW;
+    TC_012_Setup(&ctx);
+    evt = ButtonFsm_Update(&ctx.button, now);
+    return TC_012_ObserveAndVerify(&ctx, evt);
 }

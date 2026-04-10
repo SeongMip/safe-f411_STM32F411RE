@@ -15,6 +15,48 @@ static PlatformLedState TestToggleVerifier_InvertLedState(PlatformLedState state
     return (state == PLATFORM_LED_OFF) ? PLATFORM_LED_ON : PLATFORM_LED_OFF;
 }
 
+static void TestToggleVerifier_LogExpectedEvent(const TestToggleVerifier* verifier,
+                                                PlatformLedState actual_led_state)
+{
+    Log_Printf(LOG_LEVEL_INFO,
+               "[%s] event=%s count=%lu/%lu expected_led=%d actual_led=%d\r\n",
+               verifier->tc_id,
+               verifier->expected_event_name,
+               (unsigned long)(verifier->count + 1U),
+               (unsigned long)verifier->target_count,
+               (int)verifier->expected_next_led_state,
+               (int)actual_led_state);
+}
+
+static TestResult TestToggleVerifier_FailStateMismatch(const TestToggleVerifier* verifier,
+                                                       PlatformLedState actual_led_state)
+{
+    Log_Printf(LOG_LEVEL_ERROR,
+               "[%s] FAIL: event=%s count=%lu/%lu expected_led=%d actual_led=%d\r\n",
+               verifier->tc_id,
+               verifier->expected_event_name,
+               (unsigned long)(verifier->count + 1U),
+               (unsigned long)verifier->target_count,
+               (int)verifier->expected_next_led_state,
+               (int)actual_led_state);
+    return TEST_FAIL;
+}
+
+static TestResult TestToggleVerifier_CheckCompletion(TestToggleVerifier* verifier)
+{
+    if (verifier->count < verifier->target_count)
+    {
+        return TEST_IN_REVIEW;
+    }
+
+    Log_Printf(LOG_LEVEL_INFO,
+               "[%s] PASS: %lu %s events matched expected LED toggle behavior\r\n",
+               verifier->tc_id,
+               (unsigned long)verifier->count,
+               verifier->expected_event_name);
+    return TEST_PASS;
+}
+
 void TestToggleVerifier_Init(TestToggleVerifier* verifier,
                              const char* tc_id,
                              const char* expected_event_name,
@@ -44,42 +86,16 @@ void TestToggleVerifier_Init(TestToggleVerifier* verifier,
 TestResult TestToggleVerifier_OnExpectedEvent(TestToggleVerifier* verifier,
                                               PlatformLedState actual_led_state)
 {
-    Log_Printf(LOG_LEVEL_INFO,
-              "[%s] event=%s count=%lu/%lu expected_led=%d actual_led=%d\r\n",
-              verifier->tc_id,
-              verifier->expected_event_name,
-              (unsigned long)(verifier->count + 1U),
-              (unsigned long)verifier->target_count,
-              (int)verifier->expected_next_led_state,
-              (int)actual_led_state);
+    TestToggleVerifier_LogExpectedEvent(verifier, actual_led_state);
 
     if (actual_led_state != verifier->expected_next_led_state)
     {
-        Log_Printf(LOG_LEVEL_ERROR,
-                  "[%s] FAIL: event=%s count=%lu/%lu expected_led=%d actual_led=%d\r\n",
-                  verifier->tc_id,
-                  verifier->expected_event_name,
-                  (unsigned long)(verifier->count + 1U),
-                  (unsigned long)verifier->target_count,
-                  (int)verifier->expected_next_led_state,
-                  (int)actual_led_state);
-        return TEST_FAIL;
+        return TestToggleVerifier_FailStateMismatch(verifier, actual_led_state);
     }
 
     verifier->count++;
     verifier->expected_next_led_state = TestToggleVerifier_InvertLedState(verifier->expected_next_led_state);
-
-    if (verifier->count >= verifier->target_count)
-    {
-        Log_Printf(LOG_LEVEL_INFO,
-                  "[%s] PASS: %lu %s events matched expected LED toggle behavior\r\n",
-                  verifier->tc_id,
-                  (unsigned long)verifier->count,
-                  verifier->expected_event_name);
-        return TEST_PASS;
-    }
-
-    return TEST_IN_REVIEW;
+    return TestToggleVerifier_CheckCompletion(verifier);
 }
 
 /**
@@ -97,9 +113,9 @@ TestResult TestToggleVerifier_OnUnexpectedEvent(TestToggleVerifier* verifier,
                                                 const char* actual_event_name)
 {
     Log_Printf(LOG_LEVEL_ERROR,
-              "[%s] FAIL: unexpected_event=%s while_expected=%s\r\n",
-              verifier->tc_id,
-              actual_event_name,
-              verifier->expected_event_name);
+               "[%s] FAIL: unexpected_event=%s while_expected=%s\r\n",
+               verifier->tc_id,
+               actual_event_name,
+               verifier->expected_event_name);
     return TEST_FAIL;
 }

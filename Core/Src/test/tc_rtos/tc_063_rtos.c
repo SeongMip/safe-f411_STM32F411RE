@@ -12,8 +12,9 @@
 #include "platform_port.h"
 #include "rtos_probe.h"
 
-#define TC_063_RTOS_OBSERVE_MS      3000U
-#define TC_063_RTOS_MAX_WDG_GAP_MS   500U
+#define TC_063_RTOS_OBSERVE_MS       3000U
+#define TC_063_RTOS_MAX_WDG_GAP_MS    500U
+#define TC_063_RTOS_OBSERVE_STEP_MS    10U
 
 typedef struct
 {
@@ -22,12 +23,17 @@ typedef struct
     uint8_t feed_seen;
 } TC063Rtos_Context;
 
+static uint8_t TC_063_RTOS_HasObservedFeed(void)
+{
+    return (OtaRtosProbe_GetWatchdogFeedCount() > 0U) ? 1U : 0U;
+}
+
 static void TC_063_RTOS_Setup(void)
 {
     OtaRtosProbe_Reset();
 
     Log_Printf(LOG_LEVEL_INFO,
-              "[TC_063_RTOS] START watchdog servicing validation\r\n");
+               "[TC_063_RTOS] START watchdog servicing validation\r\n");
 }
 
 /**
@@ -50,19 +56,19 @@ static TestResult TC_063_RTOS_Observe(TC063Rtos_Context* ctx)
     {
         ctx->now_ms = Platform_NowMs();
 
-        if (OtaRtosProbe_GetWatchdogFeedCount() > 0U)
+        if (TC_063_RTOS_HasObservedFeed())
         {
             ctx->feed_seen = 1U;
 
             if (!OtaRtosProbe_IsWatchdogFeedHealthy(ctx->now_ms, TC_063_RTOS_MAX_WDG_GAP_MS))
             {
                 Log_Printf(LOG_LEVEL_ERROR,
-                          "[TC_063_RTOS] watchdog feed gap exceeded\r\n");
+                           "[TC_063_RTOS] watchdog feed gap exceeded\r\n");
                 return TEST_FAIL;
             }
         }
 
-        Platform_DelayMs(10U);
+        Platform_DelayMs(TC_063_RTOS_OBSERVE_STEP_MS);
     }
 
     return TEST_IN_REVIEW;
@@ -84,7 +90,7 @@ static TestResult TC_063_RTOS_Verify(const TC063Rtos_Context* ctx)
     if (!ctx->feed_seen)
     {
         Log_Printf(LOG_LEVEL_ERROR,
-                  "[TC_063_RTOS] no watchdog feed observed\r\n");
+                   "[TC_063_RTOS] no watchdog feed observed\r\n");
         return TEST_FAIL;
     }
 

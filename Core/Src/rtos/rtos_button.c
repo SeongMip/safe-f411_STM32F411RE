@@ -20,9 +20,14 @@
 #include "rtos_probe.h"
 #include "rtos_runtime.h"
 
+#define RTOS_BUTTON_DEBOUNCE_MS       30U
+#define RTOS_BUTTON_RELEASE_MS        30U
+#define RTOS_BUTTON_LONG_PRESS_MS   1500U
+#define RTOS_BUTTON_SAMPLE_MS         10U
+#define RTOS_BUTTON_PROBE_PERIOD_MS   50U
+
 static volatile uint32_t s_button_event_queued_count;
 static volatile uint32_t s_button_queue_overflow_count;
-
 static ButtonFsm s_button;
 
 static RtosButtonEventType RtosButton_ConvertEvent(BtnEvent evt)
@@ -38,13 +43,54 @@ static RtosButtonEventType RtosButton_ConvertEvent(BtnEvent evt)
     }
 }
 
+static void RtosButton_RecordQueueOverflow(const RtosButtonEvent* evt)
+{
+    /* queue overflow는 기능 실패가 아니라 관찰 대상이므로 통계를 남긴다. */
+    s_button_queue_overflow_count++;
+    RtosMonitor_NotifyQueueOverflow();
+
+    Log_Printf(LOG_LEVEL_WARN,
+               "[RTOS_BUTTON] queue full type=%lu overflow=%lu\r\n",
+               (unsigned long)evt->type,
+               (unsigned long)s_button_queue_overflow_count);
+}
+
+static void RtosButton_TryQueueEvent(const RtosButtonEvent* evt)
+{
+    if (buttonEventQueueHandle == NULL)
+    {
+        return;
+    }
+
+    if (osMessageQueuePut(buttonEventQueueHandle, evt, 0U, 0U) == osOK)
+    {
+        s_button_event_queued_count++;
+    }
+    else
+    {
+        RtosButton_RecordQueueOverflow(evt);
+    }
+}
+
+static void RtosButton_UpdateProbe(uint32_t now_ms, uint32_t* last_probe_ms)
+{
+    if ((now_ms - *last_probe_ms) >= RTOS_BUTTON_PROBE_PERIOD_MS)
+    {
+        OtaRtosProbe_NotifyHighPrioTaskTick(now_ms);
+        *last_probe_ms = now_ms;
+    }
+}
+
 void RtosButton_Init(void)
 {
     s_button_event_queued_count = 0U;
     s_button_queue_overflow_count = 0U;
 
     /* press/release bounce를 줄이기 위해 30ms debounce와 1500ms long-press 기준을 적용 */
-    ButtonFsm_Init(&s_button, 30U, 30U, 1500U);
+    ButtonFsm_Init(&s_button,
+                   RTOS_BUTTON_DEBOUNCE_MS,
+                   RTOS_BUTTON_RELEASE_MS,
+                   RTOS_BUTTON_LONG_PRESS_MS);
 }
 
 uint32_t RtosButton_GetQueuedEventCount(void)
@@ -80,12 +126,7 @@ void RtosButton_Task(void *argument)
     for (;;)
     {
         now_ms = Platform_NowMs();
-
-        if ((now_ms - last_probe_ms) >= 50U)
-        {
-            OtaRtosProbe_NotifyHighPrioTaskTick(now_ms);
-            last_probe_ms = now_ms;
-        }
+        RtosButton_UpdateProbe(now_ms, &last_probe_ms);
 
         btn_evt = ButtonFsm_Update(&s_button, now_ms);
         evt.type = RtosButton_ConvertEvent(btn_evt);
@@ -93,26 +134,9 @@ void RtosButton_Task(void *argument)
 
         if (evt.type != RTOS_BUTTON_EVENT_NONE)
         {
-            if (buttonEventQueueHandle != NULL)
-            {
-                if (osMessageQueuePut(buttonEventQueueHandle, &evt, 0U, 0U) == osOK)
-                {
-                    s_button_event_queued_count++;
-                }
-                else
-                {
-                    /* queue overflow는 기능 실패가 아니라 관찰 대상이므로 통계를 남긴다. */
-                    s_button_queue_overflow_count++;
-                    RtosMonitor_NotifyQueueOverflow();
-
-                    Log_Printf(LOG_LEVEL_WARN,
-                               "[RTOS_BUTTON] queue full type=%lu overflow=%lu\r\n",
-                               (unsigned long)evt.type,
-                               (unsigned long)s_button_queue_overflow_count);
-                }
-            }
+            RtosButton_TryQueueEvent(&evt);
         }
 
-        Platform_DelayMs(10U);
+        Platform_DelayMs(RTOS_BUTTON_SAMPLE_MS);
     }
 }

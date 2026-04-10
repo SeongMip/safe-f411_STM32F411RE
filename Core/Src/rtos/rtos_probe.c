@@ -21,6 +21,24 @@ static uint32_t s_heartbeat_count;
 static uint32_t s_high_prio_count;
 static uint32_t s_watchdog_feed_count;
 
+static void OtaRtosProbe_UpdateMaxInterval(uint32_t now_ms,
+                                           uint32_t* last_tick_ms,
+                                           uint32_t* max_interval_ms)
+{
+    uint32_t interval;
+
+    if (*last_tick_ms != 0U)
+    {
+        interval = now_ms - *last_tick_ms;
+        if (interval > *max_interval_ms)
+        {
+            *max_interval_ms = interval;
+        }
+    }
+
+    *last_tick_ms = now_ms;
+}
+
 void OtaRtosProbe_Reset(void)
 {
     s_last_heartbeat_ms = 0U;
@@ -38,35 +56,17 @@ void OtaRtosProbe_Reset(void)
 
 void OtaRtosProbe_NotifyHeartbeatTick(uint32_t now_ms)
 {
-    uint32_t interval;
-
-    if (s_last_heartbeat_ms != 0U)
-    {
-        interval = now_ms - s_last_heartbeat_ms;
-        if (interval > s_heartbeat_max_interval_ms)
-        {
-            s_heartbeat_max_interval_ms = interval;
-        }
-    }
-
-    s_last_heartbeat_ms = now_ms;
+    OtaRtosProbe_UpdateMaxInterval(now_ms,
+                                   &s_last_heartbeat_ms,
+                                   &s_heartbeat_max_interval_ms);
     s_heartbeat_count++;
 }
 
 void OtaRtosProbe_NotifyHighPrioTaskTick(uint32_t now_ms)
 {
-    uint32_t interval;
-
-    if (s_last_high_prio_ms != 0U)
-    {
-        interval = now_ms - s_last_high_prio_ms;
-        if (interval > s_high_prio_max_interval_ms)
-        {
-            s_high_prio_max_interval_ms = interval;
-        }
-    }
-
-    s_last_high_prio_ms = now_ms;
+    OtaRtosProbe_UpdateMaxInterval(now_ms,
+                                   &s_last_high_prio_ms,
+                                   &s_high_prio_max_interval_ms);
     s_high_prio_count++;
 }
 

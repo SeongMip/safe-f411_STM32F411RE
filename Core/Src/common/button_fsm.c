@@ -25,6 +25,30 @@ static inline int ButtonFsm_Elapsed(uint32_t now, uint32_t since, uint32_t thres
     return (int32_t)(now - since) >= (int32_t)threshold_ms;
 }
 
+static void ButtonFsm_EnterDebounceDown(ButtonFsm* b, uint32_t now)
+{
+    b->st = ST_DEBOUNCE_DOWN;
+    b->t_mark = now;
+}
+
+static void ButtonFsm_EnterPressed(ButtonFsm* b, uint32_t now)
+{
+    b->st = ST_PRESSED;
+    b->t_pressed = now;
+    b->long_fired = 0U;
+}
+
+static void ButtonFsm_EnterDebounceUp(ButtonFsm* b, uint32_t now)
+{
+    b->st = ST_DEBOUNCE_UP;
+    b->t_mark = now;
+}
+
+static void ButtonFsm_ResetToIdle(ButtonFsm* b)
+{
+    b->st = ST_IDLE;
+}
+
 /**
  * @brief   버튼 상태 머신을 초기화한다.
  *
@@ -43,11 +67,10 @@ void ButtonFsm_Init(ButtonFsm* b, uint32_t debounce_ms, uint32_t release_ms, uin
     b->release_ms  = release_ms;
     b->long_ms     = long_ms;
 
-    b->st = ST_IDLE;
-    b->t_mark = 0;
-    b->t_pressed = 0;
-    b->long_fired = 0;
-
+    ButtonFsm_ResetToIdle(b);
+    b->t_mark = 0U;
+    b->t_pressed = 0U;
+    b->long_fired = 0U;
     b->last_level = raw_to_level(Platform_ButtonReadRaw());
 }
 
@@ -72,14 +95,14 @@ BtnLevel ButtonFsm_Level(void)
 BtnEvent ButtonFsm_Update(ButtonFsm* b, uint32_t now)
 {
     BtnLevel level = ButtonFsm_Level();
+    BtnEvent evt = BTN_EVT_NONE;
 
     switch (b->st)
     {
     case ST_IDLE:
-        if (b->last_level == BTN_LEVEL_UP && level == BTN_LEVEL_DOWN)
+        if ((b->last_level == BTN_LEVEL_UP) && (level == BTN_LEVEL_DOWN))
         {
-            b->st = ST_DEBOUNCE_DOWN;
-            b->t_mark = now;
+            ButtonFsm_EnterDebounceDown(b, now);
         }
         break;
 
@@ -88,50 +111,45 @@ BtnEvent ButtonFsm_Update(ButtonFsm* b, uint32_t now)
         {
             if (level == BTN_LEVEL_DOWN)
             {
-                b->st = ST_PRESSED;
-                b->t_pressed = now;
-                b->long_fired = 0;
+                ButtonFsm_EnterPressed(b, now);
             }
             else
             {
-                b->st = ST_IDLE;
+                ButtonFsm_ResetToIdle(b);
             }
         }
         break;
 
     case ST_PRESSED:
-        if (!b->long_fired && ButtonFsm_Elapsed(now, b->t_pressed, b->long_ms))
+        if ((!b->long_fired) && ButtonFsm_Elapsed(now, b->t_pressed, b->long_ms))
         {
-            b->long_fired = 1;
-            return BTN_EVT_LONG;
+            /* long-press는 유지 중 반복 발행하지 않음 */
+            b->long_fired = 1U;
+            evt = BTN_EVT_LONG;
         }
-
-        if (level == BTN_LEVEL_UP)
+        else if (level == BTN_LEVEL_UP)
         {
-            b->st = ST_DEBOUNCE_UP;
-            b->t_mark = now;
+            ButtonFsm_EnterDebounceUp(b, now);
         }
         break;
 
     case ST_DEBOUNCE_UP:
         if (ButtonFsm_Elapsed(now, b->t_mark, b->release_ms))
         {
-            if (raw_to_level(Platform_ButtonReadRaw()) == BTN_LEVEL_UP)
+            if (level == BTN_LEVEL_UP)
             {
                 /* press 중 bounce 오검출을 막기 위해 release 이후 click 확정 */
-                BtnEvent evt = b->long_fired ? BTN_EVT_NONE : BTN_EVT_CLICK;
-                b->st = ST_IDLE;
-                b->last_level = raw_to_level(Platform_ButtonReadRaw());
-                return evt;
+                evt = b->long_fired ? BTN_EVT_NONE : BTN_EVT_CLICK;
+                ButtonFsm_ResetToIdle(b);
             }
             else
             {
-                b->st = ST_PRESSED;
+                ButtonFsm_EnterPressed(b, now);
             }
         }
         break;
     }
 
     b->last_level = level;
-    return BTN_EVT_NONE;
+    return evt;
 }
