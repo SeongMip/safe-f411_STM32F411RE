@@ -24,10 +24,6 @@ safe-f411의 시험 로그 형식과 출력 규칙을 통일한다.
 
 ## 5. 예시
 ```text
-[INFO] [TC-012] START single click toggle validation
-[INFO] [TC-012] OBSERVE expected=1 actual=1
-[PASS] [TC-012] single click toggled exactly once
-[FAIL] [TC-012] duplicate toggle detected
 TC-012 example
 [INFO] [TC-012] START single click toggle validation
 [INFO] [TC-012] OBSERVE expected=1 actual=1
