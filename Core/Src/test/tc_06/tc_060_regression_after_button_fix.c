@@ -56,7 +56,7 @@ static void TC_060_Setup(TC060_Context* ctx, uint32_t now)
     ctx->result = TEST_IN_REVIEW;
 
     Log_Printf(LOG_LEVEL_INFO,
-              "[ms=%lu] TC_060 START regression_scope=TC011+TC012+TC013+TC022\r\n",
+              "[ms=%lu] TC_060 START related_scope=TC_012+TC_013 with partial TC_011/TC_022 coverage\r\n",
               (unsigned long)now);
     Log_Printf(LOG_LEVEL_INFO,
               "[ms=%lu] TC_060 STEP1: Click button %u times\r\n",
