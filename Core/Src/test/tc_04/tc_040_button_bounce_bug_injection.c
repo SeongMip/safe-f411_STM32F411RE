@@ -61,7 +61,7 @@ static TestResult TC_040_Verify(TC040_Context* ctx, uint32_t now)
         if (ctx->event_count > 1U)
         {
             Log_Printf(LOG_LEVEL_INFO,
-                      "[ms=%lu] TC_040 RESULT=PASS defect_reproduced count=%lu\r\n",
+                      "[ms=%lu] TC_040 RESULT=PASS reproduction_success count=%lu\r\n",
                       (unsigned long)now,
                       (unsigned long)ctx->event_count);
             return TEST_PASS;
