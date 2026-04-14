@@ -27,6 +27,7 @@
 #include "tc_040_button_bounce_bug_injection.h"
 #include "tc_041_long_press_repeated_event_defect.h"
 #include "tc_042_uart_event_omission_defect.h"
+#include "tc_043_uart_event_overcount_cause.h"
 #include "tc_050_debounce_fix_validation.h"
 #include "tc_051_long_press_one_shot_fix_validation.h"
 #include "tc_052_uart_event_mapping_fix_validation.h"
@@ -56,6 +57,7 @@ static const TestCaseEntry g_test_cases[] =
     { RUN_TC_040, "TC_040", TC_040_ButtonBounceBugInjection_Run },
     { RUN_TC_041, "TC_041", TC_041_LongPressRepeatedEventDefect_Run },
     { RUN_TC_042, "TC_042", TC_042_UartEventOmissionDefect_Run },
+    { RUN_TC_043, "TC_043", TC_043_UartEventOvercountCause_Run },
     { RUN_TC_050, "TC_050", TC_050_DebounceFixValidation_Run },
     { RUN_TC_051, "TC_051", TC_051_LongPressOneShotFixValidation_Run },
     { RUN_TC_052, "TC_052", TC_052_UartEventMappingFixValidation_Run },
