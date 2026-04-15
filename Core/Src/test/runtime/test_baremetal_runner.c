@@ -32,7 +32,6 @@
 #include "tc_051_long_press_one_shot_fix_validation.h"
 #include "tc_052_uart_event_mapping_fix_validation.h"
 #include "tc_060_regression_after_button_fix.h"
-#include "tc_061_related_function_regression_summary.h"
 #include "tc_062_rapid_input_stress_test.h"
 #include "tc_063_long_duration_stability_test.h"
 #include "tc_064_power_cycle_recovery_validation.h"
@@ -62,7 +61,6 @@ static const TestCaseEntry g_test_cases[] =
     { RUN_TC_051, "TC_051", TC_051_LongPressOneShotFixValidation_Run },
     { RUN_TC_052, "TC_052", TC_052_UartEventMappingFixValidation_Run },
     { RUN_TC_060, "TC_060", TC_060_RegressionAfterButtonFix_Run },
-    { RUN_TC_061, "TC_061", TC_061_RelatedFunctionRegressionSummary_Run },
     { RUN_TC_062, "TC_062", TC_062_RapidInputStressTest_Run },
     { RUN_TC_063, "TC_063", TC_063_LongDurationStabilityTest_Run },
     { RUN_TC_064, "TC_064", TC_064_PowerCycleRecoveryValidation_Run },

@@ -31,7 +31,6 @@ typedef enum {
     RUN_TC_051 = 51,
     RUN_TC_052 = 52,
     RUN_TC_060 = 60,
-    RUN_TC_061 = 61,
     RUN_TC_062 = 62,
     RUN_TC_063 = 63,
     RUN_TC_064 = 64,

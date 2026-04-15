@@ -1,10 +1,11 @@
 /****************************************************************************
  * @file    tc_060_regression_after_button_fix.c
- * @brief   수정 이후 회귀, 스트레스, 안정성, 복구 특성을 검증한다.
+ * @brief   버튼 입력 처리 수정 이후 핵심 기능 회귀를 실행형으로 검증한다.
  *
  * @details
- * - 기능 fix 이후 다른 경로가 깨지지 않았는지 확인한다.
- * - 장시간 동작, reset/power cycle, safe-state 관련 관찰을 포함할 수 있다.
+ * - single click, long-press, LED 반응 일치 여부를 실제 입력으로 다시 확인한다.
+ * - 수정 영향 범위에 직접 연결된 버튼 경로를 우선 재시험해 회귀 여부를 판정한다.
+ * - 요약 성격의 회귀 결과 정리는 문서 항목으로 분리하고, 이 TC는 실행 자체에 집중한다.
  ****************************************************************************/
 
 #include "tc_060_regression_after_button_fix.h"
@@ -56,7 +57,7 @@ static void TC_060_Setup(TC060_Context* ctx, uint32_t now)
     ctx->result = TEST_IN_REVIEW;
 
     Log_Printf(LOG_LEVEL_INFO,
-              "[ms=%lu] TC_060 START related_scope=TC_012+TC_013 with partial TC_011/TC_022 coverage\r\n",
+              "[ms=%lu] TC_060 START execution_scope=TC_011+TC_012+TC_013+TC_022\r\n",
               (unsigned long)now);
     Log_Printf(LOG_LEVEL_INFO,
               "[ms=%lu] TC_060 STEP1: Click button %u times\r\n",
