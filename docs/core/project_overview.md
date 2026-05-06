@@ -7,7 +7,7 @@ safe-f411은 STM32 NUCLEO-F411RE 보드에서 버튼, LED, UART, RTOS 동작을 
 - GPIO, UART, timing, debounce 같은 기본 동작을 검증
 - 결함 재현과 수정 검증을 TC 기반으로 관리
 - bare-metal 구조의 한계를 RTOS 구조와 비교 관찰
-- 시험 절차서, 결과서, 릴리즈 문서까지 포함한 전달 가능한 형태를 정리
+- Windows host tool을 통해 UART 시험 로그와 결과 상태를 PC에서 확인 가능하도록 구성
 
 ## 3. 대상 환경
 - Board: NUCLEO-F411RE
@@ -18,6 +18,7 @@ safe-f411은 STM32 NUCLEO-F411RE 보드에서 버튼, LED, UART, RTOS 동작을 
 - Time base: TIM2 1ms tick
 - LED: PA5
 - Button: PC13, active-low, pull-up 입력
+- Host Tool: Windows WinForms (.NET 8, C#)
 
 ## 4. 현재 코드 기준 실행 설정
 - `EXEC_ROLE`: TEST
@@ -30,6 +31,7 @@ safe-f411은 STM32 NUCLEO-F411RE 보드에서 버튼, LED, UART, RTOS 동작을 
 - 버튼 입력은 polling 기반 FSM으로 click/long-press를 판정
 - UART 출력과 이벤트 처리 경로 차이를 시험 포인트로 활용
 - RTOS에서는 button task와 log service task를 분리해 queue 기반으로 관찰
+- 펌웨어는 실제 판정을 수행하고, host tool은 수신 로그를 기반으로 상태와 결과를 가시화
 
 ## 6. 대표 TC 그룹
 - TC-000 ~ TC-022: bring-up / 기능 기본 검증
@@ -40,7 +42,6 @@ safe-f411은 STM32 NUCLEO-F411RE 보드에서 버튼, LED, UART, RTOS 동작을 
 - TC-030_RTOS ~ TC-066_RTOS: RTOS 구조 검증
 
 ## 7. 산출물 방향
-이 프로젝트는 코드 자체보다 아래 산출물을 함께 보여줄 때 실무 적합도가 높아진다.
 - 아키텍처 문서
 - 시험 절차서
 - 시험 결과서
@@ -48,3 +49,4 @@ safe-f411은 STM32 NUCLEO-F411RE 보드에서 버튼, LED, UART, RTOS 동작을 
 - User Guide
 - Developer Guide
 - Delivery Package 구조
+- Windows host tool

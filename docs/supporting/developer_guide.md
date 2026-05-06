@@ -25,7 +25,7 @@ safe-f411/
 1. `Core/Inc/test/...` 와 `Core/Src/test/...`에 header/source를 추가한다.
 2. runtime runner의 테스트 테이블에 등록한다.
 3. START / PASS / FAIL 로그 형식을 공통 규칙에 맞춘다.
-4. `04_test_procedure.md`, `05_test_report.md`, `10_traceability.md`를 함께 갱신한다.
+4. 관련 시험 절차 문서와 traceability 문서를 함께 갱신한다.
 
 ## 5. 로그 규칙
 - 공통 형식: `[LEVEL] [TC-ID] message`

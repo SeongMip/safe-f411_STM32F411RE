@@ -1,12 +1,12 @@
-# Build artifacts
-/build/
-**/CMakeFiles/
-**/CMakeCache.txt
-**/cmake_install.cmake
-**/.ninja_deps
-**/.ninja_log
-**/build.ninja
-**/compile_commands.json
+# Firmware build artifacts
+/firmware/build/
+firmware/**/CMakeFiles/
+firmware/**/CMakeCache.txt
+firmware/**/cmake_install.cmake
+firmware/**/.ninja_deps
+firmware/**/.ninja_log
+firmware/**/build.ninja
+firmware/**/compile_commands.json
 
 # STM32 / generated outputs
 *.elf
@@ -19,11 +19,13 @@
 *.d
 *.su
 
+# C# host tool outputs
+host-tool/**/bin/
+host-tool/**/obj/
+
 # IDE / editor local settings
 .settings/
-.vscode/settings.json
 .vscode/launch.json
-.vscode/tasks.json
 
 # OS files
 .DS_Store
