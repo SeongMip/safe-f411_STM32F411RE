@@ -7,12 +7,12 @@
 - NUCLEO-F411RE 보드
 - USB 케이블
 - ST-LINK 사용 가능한 개발 PC
-- UART terminal 프로그램
+- UART terminal 프로그램 또는 Windows host tool
 
 ## 3. 보드 연결
 1. 보드를 USB로 PC에 연결한다.
 2. ST-LINK debug 연결이 인식되는지 확인한다.
-3. terminal에서 해당 COM 포트를 선택한다.
+3. terminal 또는 Windows host tool에서 해당 COM 포트를 선택한다.
 
 ## 4. UART 설정
 - Port: 보드에 할당된 COM 포트
@@ -25,9 +25,10 @@
 ## 5. 실행 방법
 1. 프로젝트를 build 한다.
 2. firmware를 download 한다.
-3. terminal을 열고 UART를 연결한다.
-4. 보드가 boot 되면 START 로그를 확인한다.
-5. 선택된 TC의 결과를 확인한다.
+3. terminal 또는 Windows host tool을 실행한다.
+4. COM 포트를 선택하고 UART를 연결한다.
+5. 보드가 boot 되면 START 로그를 확인한다.
+6. host tool에서는 test state와 PASS / FAIL 결과를 함께 확인한다.
 
 ## 6. 결과 해석
 - `START`: 시험 시작
@@ -35,6 +36,8 @@
 - `PASS`: 기대 결과 충족
 - `FAIL`: 판정 기준 불만족
 - `END`: 시험 종료
+- `test state`: 현재 시험 진행 상태
+- `RESULT=PASS / FAIL`: 펌웨어가 출력한 최종 시험 결과
 
 ## 7. 주의 사항
 - PC13 버튼은 active-low로 해석된다.

@@ -4,7 +4,7 @@ STM32 NUCLEO-F411RE 기반 embedded verification project입니다.
 버튼, LED, UART, RTOS 동작을 단순 기능 확인이 아니라 문제 재현, 관찰 기준, PASS/FAIL 판정, 수정 검증, 회귀 확인 관점에서 정리했습니다.
 
 이 저장소는 보드 펌웨어와 Windows host tool을 하나의 시험 체계로 관리하도록 재구성했습니다.
-보드에서 시험 로그를 생성하고, PC에서는 UART 로그를 수신·표시·저장하는 방향으로 확장할 수 있도록 구성했습니다.
+보드에서 시험 로그를 생성하고, PC에서는 UART 로그를 test state와 PASS/FAIL을 표시하도록 구성했습니다.
 
 ## Overview
 
@@ -46,8 +46,8 @@ bare-metal에서는 빠른 bring-up과 기본 기능 검증에 집중하고, RTO
 - 문제 재현과 원인 분리 중심의 테스트 설계
 - PASS/FAIL 판정 기준 정리
 - 수정 검증과 회귀 테스트 수행
-- Windows host tool 기반 시험 보조 도구 확장
-- 시험 절차서, 결과서, Release Note 등 문서화
+- Windows host tool을 통해 UART 시험 로그, test state, PASS / FAIL 결과 확인
+- 로그 규칙, 판정 기준, 사용/개발 가이드 문서화
 
 ## Build / Run
 
@@ -74,6 +74,18 @@ VS Code task 기준으로 아래 흐름을 사용합니다.
 dotnet build host-tool/SafeF411.HostTool/SafeF411.HostTool.csproj
 ```
 
+### Host tool run
+
+```bash
+dotnet run --project host-tool/SafeF411.HostTool/SafeF411.HostTool.csproj
+```
+
+Execution flow
+firmware를 build 및 flash 한다.
+host tool을 실행한다.
+COM 포트를 선택하고 Connect 한다.
+UART 로그, test state, PASS / FAIL 결과를 확인한다.
+
 ## Documentation
 
 문서 목록은 `docs/README.md`에 정리했습니다.
@@ -82,5 +94,4 @@ dotnet build host-tool/SafeF411.HostTool/SafeF411.HostTool.csproj
 
 safe-f411은 STM32F411 보드에서 버튼, LED, UART, RTOS 동작을 테스트 관점으로 구조화한 프로젝트입니다.
 
-문제 재현, 관찰 기준, 판정 규칙, 수정 검증, 회귀 확인, 문서화까지 연결되는 프로젝트이며,
-이번 구조 변경으로 보드 펌웨어와 Windows host tool을 같은 저장소 안에서 관리할 수 있게 정리했습니다.
+문제 재현, 관찰 기준, 판정 규칙, 수정 검증, 회귀 확인을 중심으로 정리한 프로젝트입니다.
